@@ -63,8 +63,17 @@ def test_data(tmp_path):
     data_path.write_text(data)
     return str(data_path)
 
+# @pytest.mark.parametrize("spark, tmp_path, expected_columns", [(spark, tmp_path, expected_columns)])
+# def test1(spark, test_data, tmp_path, expected_columns):
+#     actual = aggregate(spark, test_data)
+#     # assert 1 == 1
+#     assert actual.columns == expected_columns
+    
+# @pytest.mark.parametrize("spark, test_data, tmp_path, expected_columns",[(spark, test_data, tmp_path, expected_columns)])
+# def test1(spark, test_data, tmp_path, expected_columns):
+#     actual = aggregate(spark, test_data)
+#     assert actual.columns == expected_columns
 
-# how to get the output to send to test file? Gotta change the function - line 34. Add another argument for output.
 
 def test_aggregate_output_is_dataframe(spark, test_data, tmp_path):
     actual = aggregate(spark, test_data)

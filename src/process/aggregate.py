@@ -2,7 +2,7 @@ from pyspark.sql import SparkSession, DataFrame
 import pandas as pd
 
 
-def aggregate(spark: SparkSession, complete_data) -> DataFrame:
+def aggregate(spark: SparkSession, filtered_data: str) -> DataFrame:
     '''
     Function gets data from a CSV file, aggregates it, then exports the results in a parquet file.
 
@@ -23,24 +23,20 @@ def aggregate(spark: SparkSession, complete_data) -> DataFrame:
     summary: DataFrame
         summary of the aggregated data
     '''
-    # session = spark
-    # spark = SparkSession.builder.appName("Aggregate").getOrCreate()
 
-    df = spark.read.csv(complete_data, header=True, inferSchema=True)
+    df = spark.read.csv(filtered_data, header=True, inferSchema=True)
     summary = df.describe()
 
     export = summary.toPandas()
 
-    export.to_csv("data/output/aggregate.csv")
-    # export.to_parquet("data/output/aggregate.parquet")
-    
-    # spark.stop()
-    
+    # export.to_csv("data/output/aggregate.csv")
+    export.to_parquet("data/output/aggregate.parquet")
+        
     return summary
 
 
 if __name__ == "__main__":
     spark = SparkSession.builder.appName("Aggregate").getOrCreate()
-    result = aggregate(spark, "data/creditcard.csv")
+    result = aggregate(spark, "data/filtered_data.csv")
     spark.stop()
     print(result)
