@@ -32,12 +32,12 @@ def outlier_detection(spark: SparkSession, complete_data: str) -> dict:
     # Remove NULL values
     df.na.drop(subset=["V4"])
 
-    # Remove extreme outliers (2 standard deviations from the mean)
+    # Remove extreme outliers (3 standard deviations from the mean)
     m = df.agg(mean("V4")).collect()[0][0]
     s = df.agg(stddev("V4")).collect()[0][0]
 
-    high = m + (2*s)
-    low = m - (2*s)
+    high = m + (3*s)
+    low = m - (3*s)
 
     # Filter out the outliers for human processing
     outliers = df.filter((col("V4") >= high) | (col("V4") <= low)) #maybe this should only show column V4.
