@@ -1,11 +1,7 @@
-from pyspark.sql import SparkSession, DataFrame
+from pyspark.sql import SparkSession
 from pyspark.sql.functions import mean, stddev, col
-from process.utils.pathreader import pathreader
-import pandas as pd
+from src.process.utils.pathreader import pathreader
 import yaml
-
-# from utils.pathreader import pathreader #just for testing
-
 
 
 def outlier_detection(spark: SparkSession, complete_data: dict) -> dict:
@@ -54,8 +50,7 @@ def outlier_detection(spark: SparkSession, complete_data: dict) -> dict:
     filtered_data_path = file_path["data"]["root"]+"filtered_data.csv"
     filtered_data.toPandas().to_csv(filtered_data_path)
 
-    # Updating the config file with the new paths -> not sure how to split this one up.
-    # Does this need to be an individual util? Does this even need to happen? I can just simply return the string, rather than doing this process to update the yaml.
+    # Updating the config file with the paths of the new files
     with open("config.yaml", "r") as file:
         config = yaml.safe_load(file)
     
@@ -65,8 +60,8 @@ def outlier_detection(spark: SparkSession, complete_data: dict) -> dict:
     with open("config.yaml", "w") as file:
         yaml.safe_dump(config, file)
 
-    # returning the paths doesn't help at all. just reveals the path in the return?? But it won't be listed in the repo, just the terminal?
-    return {"outliers": outliers,
+
+    return {"outliers_data": outliers,
             "outlier_path": outliers_path,
             "filtered_data": filtered_data,
             "filtered_path": filtered_data_path,
@@ -75,7 +70,7 @@ def outlier_detection(spark: SparkSession, complete_data: dict) -> dict:
 
 if __name__ == "__main__":
     spark = SparkSession.builder.appName("Outlier Detection").getOrCreate()
-    complete_data = pathreader(spark, "complete_data")
+    complete_data = pathreader(spark, "config.yaml", "complete_data")
     result = outlier_detection(spark, complete_data)
     spark.stop()
   
