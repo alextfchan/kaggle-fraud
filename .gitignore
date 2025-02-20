@@ -1,6 +1,8 @@
 # Specific Ignores
 creditcard.csv
 src/notes/*
+config.yaml
+sampleconfig.yaml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
