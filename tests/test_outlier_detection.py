@@ -57,39 +57,70 @@ def test_data(tmp_path):
     return str(data_path)
 
 @pytest.fixture(scope="function")
-def test_complete_data(spark, test_data, tmp_path):
+def test_config(test_data, tmp_path):
+    '''
+    Creating a temporary config file so that the original config.yaml is not modified during the process.
+    '''
+    config_content = f"""
+    data:
+        complete_data: {test_data}
+        root: {str(tmp_path)}
+    paths:
+        anomalies: {str(tmp_path)}
+        output: {str(tmp_path)}
+    """
+    config_path = tmp_path / "test_config.yaml"
+    config_path.write_text(config_content)
+    return str(config_path)
+
+@pytest.fixture(scope="function")
+def test_complete_data(spark, test_data, test_config):
+    '''
+    Test dictionary which would have been received from pathreader.py function.
+    '''
+    with open(test_config, "r") as f:
+        config_content = yaml.safe_load(f)
+
     test_complete_data = {
         "dataframe": spark.read.csv(test_data, header=True, inferSchema=True),
-        "file_path": {
-            "data": {"complete_data": str(tmp_path / "test_creditcard.csv"),    "root": str(tmp_path)},
-            "paths": {"anomalies": str(tmp_path)}
-            }
+        "config_file": test_config,
+        "file_path": config_content,
         }
     return test_complete_data
 
 
-def test_outlier_output_is_dataframe(spark, test_complete_data, tmp_path):
+def test_outlier_output_is_dataframe(spark, test_complete_data):
     actual = outlier_detection(spark, test_complete_data)
     for df in key:
         assert isinstance(actual[df], DataFrame)
     
-def test_analysis_number_of_keys_returned(spark, test_complete_data, tmp_path):
+def test_analysis_number_of_keys_returned(spark, test_complete_data):
     actual = outlier_detection(spark, test_complete_data)
     assert len(actual) == 4
 
-def test_outlier_column_output(spark, test_complete_data, tmp_path):
+def test_outlier_column_output(spark, test_complete_data):
     actual = outlier_detection(spark, test_complete_data)
     for df in key:
         assert actual[df].columns == expected_columns
 
-def test_outlier_detection_updates_yaml(spark, test_complete_data, tmp_path):
+def test_outlier_detection_changes_yaml(spark, test_config, test_complete_data):
+    not_expected = [len(test_complete_data["file_path"][key]) for key in test_complete_data["file_path"]]
+
     outlier_detection(spark, test_complete_data)
-    with open("config.yaml", "r") as config_file:
+    with open(test_config, "r") as config_file:
+        config = yaml.safe_load(config_file)
+    actual = [len(config[key]) for key in config]
+    
+    assert not_expected != actual
+
+def test_outlier_detection_updates_yaml(spark, test_config, test_complete_data):
+    outlier_detection(spark, test_complete_data)
+    with open(test_config, "r") as config_file:
         config = yaml.safe_load(config_file)
     assert config["paths"]["outliers_path"] and config["data"]["filtered_data_path"]
 
-def test_outlier_detection_updates_with_correct_paths(spark, test_complete_data, tmp_path):
+def test_outlier_detection_updates_with_correct_paths(spark, test_config, test_complete_data):
     actual = outlier_detection(spark, test_complete_data)
-    with open("config.yaml", "r") as config_file:
+    with open(test_config, "r") as config_file:
         config = yaml.safe_load(config_file)
     assert config["paths"]["outliers_path"] == actual["outlier_path"] and config["data"]["filtered_data_path"] == actual["filtered_path"]
