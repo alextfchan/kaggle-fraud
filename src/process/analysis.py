@@ -1,18 +1,12 @@
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.functions import col
-from process.utils.pathreader import pathreader
-import pandas as pd
+from src.process.utils.pathreader import pathreader
 import yaml
 
-# from utils.pathreader import pathreader #just for testing
-# from outlier_detection import outlier_detection #just for testing
-
-
-# process overwrites current file. would be good to fix that.
 
 def analysis(spark: SparkSession, filtered_data: DataFrame, file_path: dict) -> dict:
     '''
-    Function receives a DataFrame, filters out the V4 values for the top 25%, middle 50%, and bottom 25% interquartile range, splits the results into 3 buckets (High, Medium, Low). Then exports the results in a parquet file.
+    Function receives a DataFrame, filters out the V4 values for the top 25%, middle 50%, and bottom 25% interquartile range, then exports these 3 buckets into parquet files.
     
     Parameters
     ----------
@@ -48,20 +42,10 @@ def analysis(spark: SparkSession, filtered_data: DataFrame, file_path: dict) -> 
     
     return_dict = {"high_bucket": high_bucket, "medium_bucket": medium_bucket, "low_bucket": low_bucket}
 
-    # export to CSV
-    # high_bucket.toPandas().to_csv("data/output/high_bucket.csv")
-    # medium_bucket.toPandas().to_csv("data/output/medium_bucket.csv")
-    # low_bucket.toPandas().to_csv("data/output/low_bucket.csv")
-
-
     output_path = file_path["file_path"]["paths"]["output"]
 
     for k,v in return_dict.items():
         v.toPandas().to_parquet(output_path + k + ".parquet")
-
-    # for k,v in return_dict.items():
-    #     v.toPandas().to_csv(output_path + k + ".csv")
-
 
     with open("config.yaml", "r") as config_file:
         config = yaml.safe_load(config_file)
@@ -79,11 +63,9 @@ def analysis(spark: SparkSession, filtered_data: DataFrame, file_path: dict) -> 
 if __name__ == "__main__":
     spark = SparkSession.builder.appName("Analysis").getOrCreate()
 
-    #pipeline
-    complete_data = pathreader(spark, "complete_data")
+    complete_data = pathreader(spark, "config.yaml", "complete_data")
     filtered_data = outlier_detection(spark, complete_data)
 
-    #actual function
     result = analysis(spark,
                       filtered_data["filtered_data"],
                       complete_data) 
