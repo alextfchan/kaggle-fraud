@@ -6,7 +6,8 @@ def pathreader(spark: SparkSession, config: dict, file: str) -> dict:
     '''
     Returns a dict containing 
         1. the path to the specific file, and returns a DataFrame
-        2. returns the config file containing the paths.
+        2. returns the config file path
+        3. returns the config file contents, containing the paths.
 
     Parameters
     ----------
@@ -18,7 +19,7 @@ def pathreader(spark: SparkSession, config: dict, file: str) -> dict:
     Return
     ------
     dict
-        a dictionary containing the DataFrame and a dict containing the file paths
+        a dictionary containing the DataFrame, the path of the config file, and a dict containing the file paths
     '''
     try:
         # Access the config.yaml file
@@ -28,7 +29,9 @@ def pathreader(spark: SparkSession, config: dict, file: str) -> dict:
         # Read the CSV file
         df = spark.read.csv(file_paths["data"][file], header=True, inferSchema=True)
     
-        return {"dataframe": df, config: file_paths}
+        return {"dataframe": df,
+                "config_file": config,
+                "file_path": file_paths}
     
     except FileNotFoundError as fnf:
         print("File Not Found: ", fnf)
