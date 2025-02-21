@@ -1,9 +1,7 @@
 from pyspark.sql import SparkSession, DataFrame
-from process.utils.pathreader import pathreader
+from src.process.utils.pathreader import pathreader
 import pandas as pd
 import yaml
-
-# from utils.pathreader import pathreader #just for testing
 # from outlier_detection import outlier_detection  #just for testing
 
 
@@ -47,10 +45,6 @@ def aggregate(spark: SparkSession, filtered_data: DataFrame, file_path: dict) ->
 
     with open("config.yaml", "w") as file:
         yaml.safe_dump(config, file)
-
-
-    # export.to_csv("data/output/aggregate.csv")
-    # export.to_parquet("data/output/aggregate.parquet")
         
     return {"summary": summary, "aggregate_path": aggregate_path}
 
@@ -58,11 +52,9 @@ def aggregate(spark: SparkSession, filtered_data: DataFrame, file_path: dict) ->
 if __name__ == "__main__":
     spark = SparkSession.builder.appName("Aggregate").getOrCreate()
 
-    #pipeline
-    complete_data = pathreader(spark, "complete_data")
+    complete_data = pathreader(spark, "config.yaml", "complete_data")
     filtered_data = outlier_detection(spark, complete_data)
 
-    #actual function
     result = aggregate(spark,
                        filtered_data["filtered_data"],
                        complete_data)
