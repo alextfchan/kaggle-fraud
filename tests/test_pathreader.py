@@ -93,4 +93,4 @@ def test_pathreader_returns_correct_filepaths(spark, test_data, test_config, tmp
                 "anomalies": "data/anomalies/",
                 "output": "data/output/"}
         }
-    assert actual["file_path"] == expected
+    assert actual[test_config] == expected
