@@ -51,21 +51,20 @@ def outlier_detection(spark: SparkSession, complete_data: dict) -> dict:
     filtered_data.toPandas().to_csv(filtered_data_path)
 
     # Updating the config file with the paths of the new files
-    with open("config.yaml", "r") as file:
+    with open(complete_data["config_file"], "r") as file:
         config = yaml.safe_load(file)
     
     config["data"]["filtered_data_path"] = filtered_data_path
     config["paths"]["outliers_path"] = outliers_path
 
-    with open("config.yaml", "w") as file:
+    with open(complete_data["config_file"], "w") as file:
         yaml.safe_dump(config, file)
 
 
     return {"outliers_data": outliers,
             "outlier_path": outliers_path,
             "filtered_data": filtered_data,
-            "filtered_path": filtered_data_path,
-            }
+            "filtered_path": filtered_data_path,}
 
 
 if __name__ == "__main__":
