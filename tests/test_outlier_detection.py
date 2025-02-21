@@ -72,11 +72,6 @@ def test_outlier_output_is_dataframe(spark, test_complete_data, tmp_path):
     actual = outlier_detection(spark, test_complete_data)
     for df in key:
         assert isinstance(actual[df], DataFrame)
-
-def test(spark, test_complete_data, tmp_path):
-    actual = outlier_detection(spark, test_complete_data)
-    for df in key:
-        assert isinstance(actual[df], DataFrame)
     
 def test_analysis_number_of_keys_returned(spark, test_complete_data, tmp_path):
     actual = outlier_detection(spark, test_complete_data)
