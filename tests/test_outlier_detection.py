@@ -1,8 +1,10 @@
 import pytest
 from pyspark.sql import SparkSession, DataFrame
 from src.process.outlier_detection import outlier_detection
+import logging
 import yaml
 
+logger = logging.getLogger()
 
 expected_columns = [
     "Time",
@@ -89,38 +91,36 @@ def test_complete_data(spark, test_data, test_config):
     return test_complete_data
 
 
-def test_outlier_output_is_dataframe(spark, test_complete_data):
+def test_output_is_dataframe(spark, test_complete_data):
     actual = outlier_detection(spark, test_complete_data)
     for df in key:
         assert isinstance(actual[df], DataFrame)
     
-def test_analysis_number_of_keys_returned(spark, test_complete_data):
+def test_number_of_keys_returned(spark, test_complete_data):
     actual = outlier_detection(spark, test_complete_data)
-    assert len(actual) == 4
+    assert len(actual) == 2
 
-def test_outlier_column_output(spark, test_complete_data):
+def test_column_output(spark, test_complete_data):
     actual = outlier_detection(spark, test_complete_data)
     for df in key:
         assert actual[df].columns == expected_columns
 
-def test_outlier_detection_changes_yaml(spark, test_config, test_complete_data):
-    not_expected = [len(test_complete_data["file_path"][key]) for key in test_complete_data["file_path"]]
+def test_output_returns_none_if_no_df(spark):
+    test_bad_data = None
+    actual = outlier_detection(spark, test_bad_data)
+    for df in key:
+        assert actual[df] is None
 
-    outlier_detection(spark, test_complete_data)
-    with open(test_config, "r") as config_file:
-        config = yaml.safe_load(config_file)
-    actual = [len(config[key]) for key in config]
-    
-    assert not_expected != actual
+def test_missing_complete_data(spark):
+    bad_data = {"dataframe": None,
+            "config_file": "",
+            "file_path": {}}
+    actual = outlier_detection(spark, bad_data)
+    expected = {"outliers_data": None, "filtered_data": None}
+    assert actual == expected
 
-def test_outlier_detection_updates_yaml(spark, test_config, test_complete_data):
-    outlier_detection(spark, test_complete_data)
-    with open(test_config, "r") as config_file:
-        config = yaml.safe_load(config_file)
-    assert config["paths"]["outliers_path"] and config["data"]["filtered_data_path"]
-
-def test_outlier_detection_updates_with_correct_paths(spark, test_config, test_complete_data):
-    actual = outlier_detection(spark, test_complete_data)
-    with open(test_config, "r") as config_file:
-        config = yaml.safe_load(config_file)
-    assert config["paths"]["outliers_path"] == actual["outlier_path"] and config["data"]["filtered_data_path"] == actual["filtered_path"]
+def test_incorrect_dict_input(spark):
+    bad_data = {}
+    actual = outlier_detection(spark, bad_data)
+    expected = {"outliers_data": None, "filtered_data": None}
+    assert actual == expected
