@@ -1,8 +1,11 @@
 import pytest
 from pyspark.sql import SparkSession, DataFrame
 from src.process.utils.pathreader import pathreader
+import logging
 import yaml
 
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 expected_columns = [
     "Time",
@@ -45,7 +48,6 @@ def spark():
     yield spark
     spark.stop()
 
-
 @pytest.fixture(scope="function")
 def test_data(tmp_path):
     data = """Time,V1,V2,V3,V4,V5,V6,V7,V8,V9,V10,V11,V12,V13,V14,V15,V16,V17,V18,V19,V20,V21,V22,V23,V24,V25,V26,V27,V28,Amount,Class
@@ -70,20 +72,20 @@ def test_config(test_data, tmp_path):
     return str(config_path)
 
 
-def test_pathreader_return_dict(spark, test_config, tmp_path):
+def test_pathreader_return_dict(spark, test_config):
     actual = pathreader(spark, test_config, "complete_data")
     assert isinstance(actual, dict)
  
-def test_pathreader_returns_df(spark, test_config, tmp_path):
+def test_pathreader_returns_df(spark, test_config):
     actual = pathreader(spark, test_config, "complete_data")
     print(actual)
     assert isinstance(actual["dataframe"], DataFrame)
 
-def test_pathreader_returns_correct_columns(spark, test_config, tmp_path):
+def test_pathreader_returns_correct_columns(spark, test_config):
     actual = pathreader(spark, test_config, "complete_data")
     assert actual["dataframe"].columns == expected_columns
 
-def test_pathreader_returns_correct_filepaths(spark, test_data, test_config, tmp_path):
+def test_pathreader_returns_correct_filepaths(spark, test_data, test_config):
     actual = pathreader(spark, test_config, "complete_data")
     expected = {
             "data": {
@@ -94,3 +96,25 @@ def test_pathreader_returns_correct_filepaths(spark, test_data, test_config, tmp
                 "output": "data/output/"}
         }
     assert actual["file_path"] == expected
+
+#unnessary test
+def test_pathreader_returns_correct_successful_log(spark, test_data, test_config, caplog):
+    with caplog.at_level(logging.INFO):
+        pathreader(spark, test_config, "complete_data")
+        assert test_data in caplog.text
+
+def test_pathreader_returns_unsuccessful_log_csv(spark, test_config, caplog):
+    with caplog.at_level(logging.ERROR):
+        pathreader(spark, test_config, "incorrect_data")
+        expected = "Error reading: 'incorrect_data', CSV does not exist."
+        assert expected in caplog.text
+
+def test_pathreader_returns_unsuccessful_log_yaml(spark, caplog):
+    with caplog.at_level(logging.ERROR):
+        pathreader(spark, "incorrect.yaml", "complete_data")
+        expected = "Config File Not Found: [Errno 2] No such file or directory: 'incorrect.yaml'"
+        assert expected in caplog.text
+    
+def test_pathreader_returns_despite_fail(spark):
+    actual = pathreader(spark, "incorrect.yaml", "incomplete_data")
+    assert actual == {"dataframe": None, "config_file": "incorrect.yaml", "file_path": {}}
