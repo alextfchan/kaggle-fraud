@@ -37,7 +37,7 @@ def pathreader(spark: SparkSession, config: str, file: str) -> dict:
         # Read the CSV file
         df = spark.read.csv(file_paths["data"][file], header=True, inferSchema=True)
 
-        logger.info(f"Reading {file} from {file_paths['data'][file]}")
+        logger.info(f"Reading {file} from: {file_paths['data'][file]}")
 
     except KeyError as ke:
         logger.exception(f"Error reading: {ke}, CSV does not exist.")
