@@ -1,12 +1,14 @@
 from pyspark.sql import SparkSession, DataFrame
-from src.process.utils.pathreader import pathreader
-import pandas as pd
-import yaml
+from src.process.utils.exporter import to_parquet
+import logging
 # from outlier_detection import outlier_detection  #just for testing
 
 
+logger = logging.getLogger()
+
+
 def aggregate(spark: SparkSession, filtered_data: DataFrame, file_path: dict) -> dict:
-    '''
+    """
     Function gets data from a CSV file, aggregates it, then exports the results in a parquet file.
 
     Parameters
@@ -18,45 +20,50 @@ def aggregate(spark: SparkSession, filtered_data: DataFrame, file_path: dict) ->
     file_path: dict
         File Paths for the output files (source: config.yaml)
 
-        
     Output
     ------
     Parquet file:
         aggregated data from the CSV file
     Updates the config file with the new paths in config.yaml
-        
+
     Return
     ------
     dict
         summary of the aggregated data as a DataFrame, and the path to the output file
-    '''
+    """
 
-    aggregate_path = file_path["file_path"]["paths"]["anomalies"]+"aggregate.parquet"
+    return_aggregate = None
 
-    summary = filtered_data.describe()
+    if not isinstance(filtered_data, DataFrame):
+        logger.error("Filtered Data was not found.")
+        return return_aggregate
 
-    export = summary.toPandas()
-    export.to_parquet(aggregate_path)
+    try:
+        # File Path for the aggregated data
+        file_path = file_path["file_path"]["paths"]["anomalies"] + "aggregate.parquet"
 
-    with open("config.yaml", "r") as file:
-        config = yaml.safe_load(file)
-    
-    config["paths"]["aggregate_path"] = aggregate_path
+        # DataFrame: Aggregated data
+        return_aggregate = filtered_data.select(
+            "Time", "V4", "Amount", "Class"
+        ).describe()
 
-    with open("config.yaml", "w") as file:
-        yaml.safe_dump(config, file)
-        
-    return {"summary": summary, "aggregate_path": aggregate_path}
+        # Exporting data into parquet format
+        to_parquet(return_aggregate, file_path)
+
+    except Exception as e:
+        logger.exception(f"Error aggregating data: {e}")
+
+    return return_aggregate
 
 
-if __name__ == "__main__":
-    spark = SparkSession.builder.appName("Aggregate").getOrCreate()
+# if __name__ == "__main__":
+#     spark = SparkSession.builder.appName("Aggregate").getOrCreate()
 
-    complete_data = pathreader(spark, "config.yaml", "complete_data")
-    filtered_data = outlier_detection(spark, complete_data)
+#     complete_data = pathreader(spark, "config.yaml", "complete_data")
+#     filtered_data = outlier_detection(spark, complete_data)
 
-    result = aggregate(spark,
-                       filtered_data["filtered_data"],
-                       complete_data)
-    spark.stop()
-    print(result)
+#     result = aggregate(spark,
+#                        filtered_data["filtered_data"],
+#                        complete_data)
+#     spark.stop()
+#     print(result)
