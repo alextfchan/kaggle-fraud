@@ -1,13 +1,14 @@
-from pyspark.sql import SparkSession, DataFrame
-from src.process.utils.exporter import to_parquet
 import logging
-# from outlier_detection import outlier_detection  #just for testing
+from polars import DataFrame, col
+from src.process.utils.exporter import to_parquet
+from src.process.outlier_detection import outlier_detection
+from src.process.utils.pathreader import pathreader
 
 
 logger = logging.getLogger()
 
 
-def aggregate(spark: SparkSession, filtered_data: DataFrame, file_path: dict) -> dict:
+def aggregate(filtered_data: DataFrame, file_path: dict) -> DataFrame:
     """
     Function gets data from a CSV file, aggregates it, then exports the results in a parquet file.
 
@@ -40,30 +41,26 @@ def aggregate(spark: SparkSession, filtered_data: DataFrame, file_path: dict) ->
 
     try:
         # File Path for the aggregated data
-        file_path = file_path["file_path"]["paths"]["anomalies"] + "aggregate.parquet"
+        output_path = file_path["file_path"]["paths"]["anomalies"] + "aggregate.parquet"
 
         # DataFrame: Aggregated data
-        return_aggregate = filtered_data.select(
-            "Time", "V4", "Amount", "Class"
-        ).describe()
+        return_aggregate = filtered_data.select("Time", "V4", "Amount", "Class").describe()
 
         # Exporting data into parquet format
-        to_parquet(return_aggregate, file_path)
+        to_parquet(return_aggregate, output_path)
 
     except Exception as e:
         logger.exception(f"Error aggregating data: {e}")
 
+    logger.info("Data aggregation has been completed.")
+
     return return_aggregate
 
 
-# if __name__ == "__main__":
-#     spark = SparkSession.builder.appName("Aggregate").getOrCreate()
+if __name__ == "__main__":
+    complete_data = pathreader("config.yaml", "complete_data")
+    filtered_data = outlier_detection(complete_data)
 
-#     complete_data = pathreader(spark, "config.yaml", "complete_data")
-#     filtered_data = outlier_detection(spark, complete_data)
-
-#     result = aggregate(spark,
-#                        filtered_data["filtered_data"],
-#                        complete_data)
-#     spark.stop()
-#     print(result)
+    result = aggregate(filtered_data["filtered_data"],
+                       complete_data)
+    print(result)

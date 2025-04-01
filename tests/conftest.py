@@ -44,7 +44,7 @@ def full_expected_columns():
 @pytest.fixture(scope="module")
 def aggregate_expected_columns():
     return [
-        "summary",
+        "statistic",
         "Time",
         "V4",
         "Amount",
@@ -54,7 +54,17 @@ def aggregate_expected_columns():
 
 @pytest.fixture(scope="module")
 def aggregate_expected_rows():
-    return ["count", "mean", "stddev", "min", "max"]
+    return [
+        "count",
+        "null_count",
+        "mean",
+        "std", 
+        "min",
+        "25%",
+        "50%",
+        "75%",
+        "max",
+    ]
 
 
 @pytest.fixture(scope="module")
