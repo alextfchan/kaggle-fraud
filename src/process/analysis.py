@@ -1,13 +1,17 @@
-from pyspark.sql import SparkSession, DataFrame
-from pyspark.sql.functions import col
+import logging
+from polars import DataFrame, col
+from src.process.utils.exporter import to_parquet
+from src.process.outlier_detection import outlier_detection
 from src.process.utils.pathreader import pathreader
-import yaml
 
 
-def analysis(spark: SparkSession, filtered_data: DataFrame, file_path: dict) -> dict:
-    '''
+logger = logging.getLogger()
+
+
+def analysis(filtered_data: DataFrame, file_path: dict) -> dict:
+    """
     Function receives a DataFrame, filters out the V4 values for the top 25%, middle 50%, and bottom 25% interquartile range, then exports these 3 buckets into parquet files.
-    
+
     Parameters
     ----------
     filtered_data: DataFrame
@@ -29,44 +33,46 @@ def analysis(spark: SparkSession, filtered_data: DataFrame, file_path: dict) -> 
     ------
     dict
         A dictionary containing the high, medium, and low buckets as DataFrames.
-    '''
+    """
+
+    return_analysis = {"high_bucket": None, "medium_bucket": None, "low_bucket": None}
+
+    if not isinstance(filtered_data, DataFrame):
+        logger.error("Filtered Data was not found.")
+        return return_analysis
+
+    try:
+        analysis = filtered_data.select("Time", "V4", "Amount", "Class")
+
+        # Separating results into buckets
+        quantile = [
+            analysis["V4"].quantile(0.25, "nearest"),
+            analysis["V4"].quantile(0.75, "nearest"),
+        ]
+
+        return_analysis["high_bucket"] = analysis.filter(col("V4") > quantile[1])
+        return_analysis["medium_bucket"] = analysis.filter(
+            (col("V4") <= quantile[1]) & (col("V4") >= quantile[0])
+        )
+        return_analysis["low_bucket"] = analysis.filter(col("V4") < quantile[0])
 
 
-    analysis=filtered_data.select("Time", "V4", "Amount", "Class")
+        # Exporting buckets into parquet format
+        output_path = file_path["file_path"]["paths"]["output"]
+        for k, v in return_analysis.items():
+            to_parquet(v, file_path=output_path + k + ".parquet")
 
-    quantile = analysis.approxQuantile("V4", [0.25, 0.75], 0)
+    except Exception as e:
+        logger.exception(f"Unexpected Error: {e}")
 
-    high_bucket = analysis.filter(col("V4") > quantile[1])
-    medium_bucket = analysis.filter((col("V4") <= quantile[1]) & (col("V4") >= quantile[0]))
-    low_bucket = analysis.filter(col("V4") < quantile[0])
-    
-    return_dict = {"high_bucket": high_bucket, "medium_bucket": medium_bucket, "low_bucket": low_bucket}
+    logger.info("Data Analysis has been completed.")
 
-    output_path = file_path["file_path"]["paths"]["output"]
-
-    for k,v in return_dict.items():
-        v.toPandas().to_parquet(output_path + k + ".parquet")
-
-    with open("config.yaml", "r") as config_file:
-        config = yaml.safe_load(config_file)
-
-    config["paths"]["high_bucket_path"] = output_path + "high_bucket.parquet"
-    config["paths"]["medium_bucket_path"] = output_path + "medium_bucket.parquet"
-    config["paths"]["low_bucket_path"] = output_path + "low_bucket.parquet"
-
-    with open("config.yaml", "w") as config_file:
-        yaml.safe_dump(config, config_file)
-
-    return return_dict
+    return return_analysis
 
 
 if __name__ == "__main__":
-    spark = SparkSession.builder.appName("Analysis").getOrCreate()
+    complete_data = pathreader("config.yaml", "complete_data")
+    filtered_data = outlier_detection(complete_data)
 
-    complete_data = pathreader(spark, "config.yaml", "complete_data")
-    filtered_data = outlier_detection(spark, complete_data)
-
-    result = analysis(spark,
-                      filtered_data["filtered_data"],
-                      complete_data) 
-    spark.stop()
+    result = analysis(filtered_data["filtered_data"], complete_data)
+    print(result)
