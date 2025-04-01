@@ -42,7 +42,9 @@ def aggregate(filtered_data: DataFrame, file_path: dict) -> DataFrame:
         output_path = file_path["file_path"]["paths"]["anomalies"] + "aggregate.parquet"
 
         # DataFrame: Aggregated data
-        return_aggregate = filtered_data.select("Time", "V4", "Amount", "Class").describe()
+        return_aggregate = filtered_data.select(
+            "Time", "V4", "Amount", "Class"
+        ).describe()
 
         # Exporting data into parquet format
         to_parquet(return_aggregate, output_path)
