@@ -1,4 +1,4 @@
-from polars import DataFrame, read_csv
+from polars import read_csv
 import logging
 import yaml
 
@@ -30,11 +30,12 @@ def pathreader(config: str, file: str) -> dict:
     file_paths = {}
 
     try:
-
         with open(config, "r") as f:
             file_paths = yaml.safe_load(f)
 
-        df = read_csv(file_paths["data"][file], ignore_errors=True) #keeps correct dtype for each column.
+        df = read_csv(
+            file_paths["data"][file], ignore_errors=True
+        )  # keeps correct dtype for each column.
 
         logger.info(f"Read {file} from: {file_paths['data'][file]}")
 

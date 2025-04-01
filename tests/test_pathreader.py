@@ -24,7 +24,9 @@ def test_pathreader_returns_correct_columns(data, test_config, full_expected_col
 
 
 @pytest.mark.parametrize("data", [(data[5])])
-def test_pathreader_returns_correct_filepaths(data, test_complete_dataframe, test_config):
+def test_pathreader_returns_correct_filepaths(
+    data, test_complete_dataframe, test_config
+):
     actual = pathreader(test_config, "complete_data")
     expected = {
         "data": {"complete_data": test_complete_dataframe[1], "root": "data/"},
@@ -34,7 +36,9 @@ def test_pathreader_returns_correct_filepaths(data, test_complete_dataframe, tes
 
 
 @pytest.mark.parametrize("data", [(data[5])])
-def test_pathreader_returns_correct_successful_log(data, test_complete_dataframe, test_config, caplog):
+def test_pathreader_returns_correct_successful_log(
+    data, test_complete_dataframe, test_config, caplog
+):
     with caplog.at_level(logging.INFO):
         pathreader(test_config, "complete_data")
         assert test_complete_dataframe[1] in caplog.text
