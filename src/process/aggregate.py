@@ -39,7 +39,7 @@ def aggregate(filtered_data: DataFrame, file_path: dict) -> DataFrame:
 
     try:
         # File Path for the aggregated data
-        output_path = file_path["file_path"]["paths"]["anomalies"] + "aggregate.parquet"
+        output_path = file_path["file_path"]["paths"]["output"] + "aggregate.parquet"
 
         # DataFrame: Aggregated data
         return_aggregate = filtered_data.select(
