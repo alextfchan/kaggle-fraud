@@ -58,7 +58,7 @@ def aggregate_expected_rows():
         "count",
         "null_count",
         "mean",
-        "std", 
+        "std",
         "min",
         "25%",
         "50%",

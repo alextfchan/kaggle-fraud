@@ -56,7 +56,6 @@ def analysis(filtered_data: DataFrame, file_path: dict) -> dict:
         )
         return_analysis["low_bucket"] = analysis.filter(col("V4") < quantile[0])
 
-
         # Exporting buckets into parquet format
         output_path = file_path["file_path"]["paths"]["output"]
         for k, v in return_analysis.items():
