@@ -1,0 +1,7 @@
+data:
+  complete_data: data/creditcard.csv
+  root: data/
+  raw: data/raw/
+paths:
+  anomalies: data/anomalies/
+  output: data/output/
