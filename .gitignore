@@ -1,5 +1,6 @@
 # Specific Ignores
 creditcard.csv
+filtered_data.csv
 src/notes/*
 sampleconfig.yaml
 .ruff_cache/
