@@ -1,8 +1,7 @@
-import polars as pl
-from src.process.utils.pathreader import pathreader
-from src.process.outlier_detection import outlier_detection
 from src.process.aggregate import aggregate
 from src.process.analysis import analysis
+from src.process.outlier_detection import outlier_detection
+from src.utils.pathreader import pathreader
 
 # logger = logging.getLogger()
 

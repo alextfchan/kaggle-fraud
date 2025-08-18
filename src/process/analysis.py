@@ -1,9 +1,10 @@
 import logging
-from polars import DataFrame, col
-from src.process.utils.exporter import to_parquet
-from src.process.outlier_detection import outlier_detection
-from src.process.utils.pathreader import pathreader
 
+from polars import DataFrame, col
+
+from src.process.outlier_detection import outlier_detection
+from src.utils.exporter import to_parquet
+from src.utils.pathreader import pathreader
 
 logger = logging.getLogger()
 

@@ -282,6 +282,19 @@ hf-datasets = ["datasets", "pandas"]
 pandas-datasets = ["pandas"]
 
 [[package]]
+name = "log-call"
+version = "0.1.0"
+description = "Library to log function or bond-method calls"
+optional = false
+python-versions = ">=3.7"
+groups = ["main"]
+markers = "python_version == \"3.11\" or python_version >= \"3.12\""
+files = [
+    {file = "log_call-0.1.0-py3-none-any.whl", hash = "sha256:d182874e133515c8dcbb09f09303776c6aa728d195212f8400ed1075dc063c4d"},
+    {file = "log_call-0.1.0.tar.gz", hash = "sha256:00234c9ddbbf8167da76380b820a73201af295c2fd526c9c9c643b515e3c6ab9"},
+]
+
+[[package]]
 name = "numpy"
 version = "2.2.4"
 description = "Fundamental package for array computing in Python"
@@ -961,4 +974,4 @@ files = [
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11"
-content-hash = "482ff5cdee1c0f981d2853d0794b17206c22f2f3c4ceed612690522aeaabca20"
+content-hash = "04bc92aa5612d6e70f11f81526de2f180797a085515217d1e9ff9fb768ff09bc"

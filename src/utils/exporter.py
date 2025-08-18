@@ -1,10 +1,12 @@
-from polars import DataFrame
+# from log_call import log_call
 import logging
 
+from polars import DataFrame
 
 logger = logging.getLogger()
 
 
+# @log_call
 def to_parquet(df: DataFrame, file_path: str) -> None:
     """
     Function exports a DataFrame to a Parquet file.
@@ -16,6 +18,7 @@ def to_parquet(df: DataFrame, file_path: str) -> None:
         logger.exception(f"Error exporting to Parquet: {e}")
 
 
+# @log_call
 def to_csv(df: DataFrame, file_path: str) -> None:
     """
     Function exports a DataFrame to a CSV file.

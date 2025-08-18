@@ -20,7 +20,8 @@ dependencies = [
     "openmeteo-requests (>=1.4.0,<2.0.0)",
     "requests-cache (>=1.2.1,<2.0.0)",
     "retry-requests (>=2.0.0,<3.0.0)",
-    "numpy (>=2.2.4,<3.0.0)"
+    "numpy (>=2.2.4,<3.0.0)",
+    "log-call (>=0.1.0,<0.2.0)"
 ]
 
 

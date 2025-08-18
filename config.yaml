@@ -2,6 +2,7 @@ data:
   complete_data: data/creditcard.csv
   root: data/
   raw: data/raw/
+  weather: data/weather/
 paths:
   anomalies: data/anomalies/
   output: data/output/

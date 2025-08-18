@@ -1,23 +1,27 @@
-from polars import read_csv
 import logging
-import yaml
 
+import yaml
+from polars import read_csv
 
 logger = logging.getLogger()
 
+# seems to be a pathread for CSV files now.
 
-def pathreader(config: str, file: str) -> dict:
+
+def pathreader(config: str = "config.yaml", file: str = "complete_data") -> dict:
     """
     Returns a dict containing
-        1. the path to the specific file, and returns a DataFrame
-        2. returns the config file path
+        1. the DataFrame, read from the CSV file.
+        2. returns the config file path.
         3. returns the config file contents, containing the paths.
 
     Parameters
     ----------
     config: str
+        default: "config.yaml"
         name of the config.yaml file
     file: str
+        default: "complete_data"
         name of the file to read located within config.yaml
 
     Return

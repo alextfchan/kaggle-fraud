@@ -1,7 +1,12 @@
-from polars import col
 import logging
-from src.process.utils.pathreader import pathreader
-from src.process.utils.exporter import to_parquet, to_csv
+
+from polars import col
+
+from src.utils.exporter import to_csv, to_parquet
+from src.utils.pathreader import pathreader
+
+# from utils.pathreader import pathreader
+# from utils.exporter import to_parquet, to_csv
 
 
 logger = logging.getLogger()
